@@ -10,7 +10,6 @@ import dns.message
 from urllib import request
 
 DEFAULT_SERVER = "https://doh.opendns.com"
-RR_TYPES = dns.rdatatype._by_text.keys()
 
 def usage():
     print("Usage: doh [@[http[s]://]server[:port]] [TYPE] [+nosslverify] domain")
@@ -78,13 +77,17 @@ def main(argv):
                 ssl_ctx.verify_mode = ssl.CERT_NONE
             continue
 
-        if arg.upper() in RR_TYPES:
-            record_type = arg.upper()
-            continue
-
         if record_name == "":
             record_name = arg
             continue
+
+        try:
+            if dns.rdatatype.from_text(arg.upper()):
+                record_type = arg.upper()
+                continue
+
+        except Exception :
+            raise dns.exception.SyntaxError
 
         print("Invalid argument:", arg)
         return 1
